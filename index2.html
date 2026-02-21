@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Personal Homepage</title>
+    <title>DrHasib | Homepage</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         h1 { margin-top: 60px; color: #212529; font-weight: 300; }
@@ -34,7 +34,7 @@
 </head>
 <body id="main-body">
 
-    <h1>আমার শর্টকাট লিংক</h1>
+    <h1>Dr Hasib | Homepage</h1>
     
     <div id="links-container" class="links-container">
         </div>
@@ -42,10 +42,10 @@
     <button id="edit-toggle-btn" onclick="toggleEditMode()">✏️</button>
 
     <div id="customize-panel">
-        <strong>নতুন লিংক যোগ করুন</strong>
-        <input type="text" id="siteName" placeholder="সাইটের নাম (যেমন: Facebook)">
-        <input type="url" id="siteUrl" placeholder="URL (যেমন: https://fb.com)">
-        <button onclick="saveLink()">সেভ করুন</button>
+        <strong>Add Item</strong>
+        <input type="text" id="siteName" placeholder="Site Name (example: Facebook)">
+        <input type="url" id="siteUrl" placeholder="URL (example: https://fb.com)">
+        <button onclick="saveLink()">Save</button>
     </div>
 
     <script type="module">
@@ -101,7 +101,7 @@
 
         // লিংক ডিলিট করা
         window.deleteLink = async function(id) {
-            if(confirm("এই লিংকটি কি ডিলিট করবেন?")) {
+            if(confirm("Confirm to Delete?")) {
                 await deleteDoc(doc(db, "links", id));
                 loadLinks();
             }

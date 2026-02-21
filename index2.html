@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Homepage</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        h1 { margin-top: 60px; color: #212529; font-weight: 300; }
+        
+        .links-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 40px; max-width: 900px; }
+        
+        .link-card { background: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; position: relative; }
+        .link-card:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .link-card a { text-decoration: none; color: #333; font-weight: 500; font-size: 16px; }
+        
+        /* ডিলিট বাটন - ডিফল্টভাবে লুকানো */
+        .delete-btn { background: #ff4757; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center; transition: background 0.2s; }
+        .delete-btn:hover { background: #ff6b81; }
+        
+        /* এডিট মোড অ্যাক্টিভ হলে ডিলিট বাটন দেখাবে */
+        .edit-active .delete-btn { display: flex; }
+
+        /* পেন্সিল বাটন */
+        #edit-toggle-btn { position: fixed; bottom: 30px; right: 30px; background: #3498db; color: white; border: none; border-radius: 50%; width: 55px; height: 55px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); z-index: 1000; transition: 0.3s; }
+        #edit-toggle-btn:hover { background: #2980b9; transform: rotate(-15deg); }
+
+        /* কাস্টমাইজ প্যানেল (লিংক অ্যাড করার বক্স) */
+        #customize-panel { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: fixed; bottom: 100px; right: 30px; display: none; flex-direction: column; gap: 12px; width: 260px; z-index: 999; }
+        #customize-panel strong { color: #444; margin-bottom: 5px; display: block; }
+        #customize-panel input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        #customize-panel button { padding: 10px; background: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body id="main-body">
+
+    <h1>আমার শর্টকাট লিংক</h1>
+    
+    <div id="links-container" class="links-container">
+        </div>
+
+    <button id="edit-toggle-btn" onclick="toggleEditMode()">✏️</button>
+
+    <div id="customize-panel">
+        <strong>নতুন লিংক যোগ করুন</strong>
+        <input type="text" id="siteName" placeholder="সাইটের নাম (যেমন: Facebook)">
+        <input type="url" id="siteUrl" placeholder="URL (যেমন: https://fb.com)">
+        <button onclick="saveLink()">সেভ করুন</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // আপনার প্রজেক্ট কনফিগ
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgrn_3PFxS7sUd2F9jHPEsE2_hYznE7N4",
+            authDomain: "homepage-drhasib.firebaseapp.com",
+            projectId: "homepage-drhasib",
+            storageBucket: "homepage-drhasib.firebasestorage.app",
+            messagingSenderId: "938006927473",
+            appId: "1:938006927473:web:9b5f9d4920e634b652e3d0",
+            measurementId: "G-LT1HCTBEBN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // লিংক লোড করা
+        async function loadLinks() {
+            const querySnapshot = await getDocs(collection(db, "links"));
+            const container = document.getElementById('links-container');
+            container.innerHTML = '';
+            
+            querySnapshot.forEach((res) => {
+                const data = res.data();
+                const id = res.id;
+                
+                const card = document.createElement('div');
+                card.className = 'link-card';
+                card.innerHTML = `
+                    <a href="${data.url}" target="_blank">${data.name}</a>
+                    <button class="delete-btn" onclick="deleteLink('${id}')">✕</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // নতুন লিংক সেভ করা
+        window.saveLink = async function() {
+            const name = document.getElementById('siteName').value;
+            const url = document.getElementById('siteUrl').value;
+
+            if(name && url) {
+                await addDoc(collection(db, "links"), { name, url, date: new Date() });
+                document.getElementById('siteName').value = '';
+                document.getElementById('siteUrl').value = '';
+                loadLinks();
+            }
+        }
+
+        // লিংক ডিলিট করা
+        window.deleteLink = async function(id) {
+            if(confirm("এই লিংকটি কি ডিলিট করবেন?")) {
+                await deleteDoc(doc(db, "links", id));
+                loadLinks();
+            }
+        }
+
+        // এডিট মোড অন/অফ করা (পেন্সিল বাটনের কাজ)
+        window.toggleEditMode = function() {
+            const panel = document.getElementById('customize-panel');
+            const container = document.getElementById('links-container');
+            
+            if (panel.style.display === 'flex') {
+                panel.style.display = 'none';
+                container.classList.remove('edit-active');
+            } else {
+                panel.style.display = 'flex';
+                container.classList.add('edit-active');
+            }
+        }
+
+        loadLinks();
+    </script>
+</body>
+</html>
